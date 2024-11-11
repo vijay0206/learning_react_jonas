@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 import { useMovies } from "./useMovies";
+import { useLocalStorageState } from "./useLocalStorageState";
+import { useKey } from "./useKey";
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -12,12 +14,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null);
 
   const { movies, isLoading, error } = useMovies(query, handleCloseMovie);
-
-  // const [watched, setWatched] = useState([]);
-  const [watched, setWatched] = useState(() => {
-    const storedMovies = localStorage.getItem("watched");
-    return storedMovies ? JSON.parse(localStorage.getItem("watched")) : [];
-  });
+  const [watched, setWatched] = useLocalStorageState([], "watched");
 
   function handleSelectMovie(id) {
     setSelectedId((currVal) => (currVal !== id ? id : null));
@@ -34,13 +31,6 @@ export default function App() {
   function handleDeleteWatched(id) {
     setWatched((currVal) => currVal.filter((movie) => movie.imdbId !== id));
   }
-
-  useEffect(
-    function () {
-      localStorage.setItem("watched", JSON.stringify(watched));
-    },
-    [watched]
-  );
 
   return (
     <>
@@ -86,22 +76,12 @@ export default function App() {
 function Search({ query, setQuery }) {
   const inputElement = useRef(null);
 
-  useEffect(() => {
-    function callbackFn(event) {
-      if (document.activeElement === inputElement.current) {
-        return;
-      }
+  useKey("Enter", function () {
+    if (document.activeElement === inputElement.current) return;
 
-      if (event.code === "Enter") {
-        inputElement.current.focus();
-        setQuery("");
-      }
-    }
-
-    document.addEventListener("keydown", callbackFn);
-
-    return () => document.removeEventListener("keydown", callbackFn);
-  }, [setQuery]);
+    inputElement.current.focus();
+    setQuery("");
+  });
 
   return (
     <input
@@ -266,27 +246,7 @@ function MovieDetails({ selectedId, oncloseMovie, onAddWatched, watched }) {
     oncloseMovie();
   }
 
-  // const [isTop, setIsTop] = useState(imdbRating > 8);
-  // console.log(isTop);
-
-  // useEffect(() => {
-  //   setIsTop(imdbRating > 8);
-  // }, [imdbRating]);
-
-  useEffect(
-    function () {
-      function callBack(event) {
-        if (event.code === "Escape") {
-          oncloseMovie();
-        }
-      }
-
-      document.addEventListener("keydown", callBack);
-
-      return () => document.removeEventListener("keydown", callBack);
-    },
-    [oncloseMovie]
-  );
+  useKey("Escape", oncloseMovie);
 
   useEffect(() => {
     async function getMovieDetais() {
