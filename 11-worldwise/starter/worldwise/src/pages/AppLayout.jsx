@@ -1,5 +1,6 @@
 import Map from "../componenets/Map";
 import SideBar from "../componenets/SideBar";
+import User from "../componenets/User";
 import styles from "./AppLayout.module.css";
 
 function AppLayout() {
@@ -7,6 +8,7 @@ function AppLayout() {
     <div className={styles.app}>
       <SideBar />
       <Map />
+      <User />
     </div>
   );
 }
